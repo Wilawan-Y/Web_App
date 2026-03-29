@@ -11,13 +11,11 @@
         .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
         
-        /* ตั้งค่าให้ Textarea ขยายความสูงอัตโนมัติตามเนื้อหา */
         textarea {
-            field-sizing: content; /* Modern CSS สำหรับขยายกรอบอัตโนมัติ */
+            field-sizing: content;
             min-height: 2.5rem;
         }
         
-        /* ซ่อนกรอบและลูกศรเมื่ออยู่ในโหมด Viewer (disabled) */
         input:disabled, select:disabled, textarea:disabled {
             background-color: transparent !important;
             border-color: transparent !important;
@@ -28,7 +26,7 @@
         }
         textarea:disabled {
             resize: none;
-            overflow: hidden; /* ซ่อนแถบเลื่อนเมื่อเป็นโหมดดูอย่างเดียว */
+            overflow: hidden;
         }
         input:disabled::-webkit-outer-spin-button,
         input:disabled::-webkit-inner-spin-button {
@@ -37,224 +35,244 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans pb-10">
-    <div id="app">
-        <div v-if="isAdmin" class="bg-yellow-200 text-yellow-800 p-2 text-center text-sm font-bold shadow-sm">
-            🛠️ คุณกำลังอยู่ในโหมดผู้ดูแลระบบ
-        </div>
-        <div v-else class="bg-green-200 text-green-800 p-2 text-center text-sm font-bold shadow-sm">
-            👁️ คุณกำลังอยู่ในโหมดผู้เยี่ยมชม
+<body class="bg-gray-100 text-gray-800 font-sans pb-6">
+    <div id="app" class="max-w-7xl mx-auto p-4">
+        
+        <h1 class="text-2xl font-bold text-center text-blue-700 mb-4 mt-2">ระบบจัดสรรงบประมาณสถานศึกษา ปีการศึกษา 2569</h1>
+
+        <div class="flex justify-between items-end border-b border-gray-300 mb-4 pb-1">
+            <div class="flex space-x-2">
+                <button @click="activeTab = 'income'" :class="['py-1.5 px-6 font-semibold rounded-t-lg transition-colors', activeTab === 'income' ? 'bg-blue-600 text-white shadow' : 'bg-gray-200 text-gray-600 hover:bg-gray-300']">
+                    ประมาณการรายได้
+                </button>
+                <button @click="activeTab = 'allocation'" :class="['py-1.5 px-6 font-semibold rounded-t-lg transition-colors', activeTab === 'allocation' ? 'bg-blue-600 text-white shadow' : 'bg-gray-200 text-gray-600 hover:bg-gray-300']">
+                    ข้อมูลจัดสรร
+                </button>
+            </div>
+            
+            <div class="flex space-x-2 mb-1">
+                <button v-if="isAdmin" @click="saveData" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-1.5 rounded shadow font-semibold flex items-center">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                    บันทึกข้อมูล
+                </button>
+                <button @click="exportToExcel" class="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded shadow font-semibold flex items-center">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    โหลด Excel
+                </button>
+            </div>
         </div>
 
-        <div class="max-w-7xl mx-auto p-6">
-            <h1 class="text-3xl font-bold text-center text-blue-700 mb-6 mt-4">ระบบจัดสรรงบประมาณสถานศึกษา ปีการศึกษา 2569</h1>
+        <div v-show="activeTab === 'income'" class="bg-white p-4 rounded-lg shadow-md">
+            <h2 class="text-lg font-bold mb-2 border-b pb-1">ส่วนที่ 1: งบประมาณจากเงินรายหัวนักเรียน</h2>
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse text-base">
+                    <thead>
+                        <tr class="bg-blue-100">
+                            <th class="border p-2">ระดับชั้น</th>
+                            <th class="border p-2 text-right">อุดหนุน (บาท/คน)</th>
+                            <th class="border p-2 text-right">ก.พัฒน์ (บาท/คน)</th>
+                            <th class="border p-2 text-center w-40">จำนวนนักเรียน</th>
+                            <th class="border p-2 text-right">รวมอุดหนุน (บาท)</th>
+                            <th class="border p-2 text-right">รวม ก.พัฒน์ (บาท)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(rate, level) in rates" :key="level" class="hover:bg-gray-50">
+                            <td class="border p-1.5 px-3">{{ levelDisplay(level) }}</td>
+                            <td class="border p-1.5 px-3 text-right">{{ formatNumber(rate.ud) }}</td>
+                            <td class="border p-1.5 px-3 text-right">{{ formatNumber(rate.dev) }}</td>
+                            <td class="border p-1">
+                                <input type="number" v-model.number="students[level]" :disabled="!isAdmin" :class="['w-full rounded p-1 text-center', isAdmin ? 'border' : 'font-bold text-blue-800']" min="0">
+                            </td>
+                            <td class="border p-1.5 px-3 text-right text-blue-600 font-semibold">{{ formatNumber(students[level] * rate.ud) }}</td>
+                            <td class="border p-1.5 px-3 text-right text-green-600 font-semibold">{{ formatNumber(students[level] * rate.dev) }}</td>
+                        </tr>
+                        <tr class="bg-gray-100 font-bold">
+                            <td colspan="4" class="border p-2 text-right">รวมเงินรายหัวทั้งหมด</td>
+                            <td class="border p-2 text-right text-blue-700">{{ formatNumber(totalIncomeUd) }}</td>
+                            <td class="border p-2 text-right text-green-700">{{ formatNumber(totalIncomeDev) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-            <div class="flex justify-between items-end border-b border-gray-300 mb-6 pb-2">
-                <div class="flex space-x-2">
-                    <button @click="activeTab = 'income'" :class="['py-2 px-6 font-semibold rounded-t-lg transition-colors', activeTab === 'income' ? 'bg-blue-600 text-white shadow' : 'bg-gray-200 text-gray-600 hover:bg-gray-300']">
-                        ประมาณการรายได้
-                    </button>
-                    <button @click="activeTab = 'allocation'" :class="['py-2 px-6 font-semibold rounded-t-lg transition-colors', activeTab === 'allocation' ? 'bg-blue-600 text-white shadow' : 'bg-gray-200 text-gray-600 hover:bg-gray-300']">
-                        ข้อมูลจัดสรร
-                    </button>
+            <h2 class="text-lg font-bold mb-2 border-b pb-1">ส่วนที่ 2: ยอดยกมาจากปีการศึกษาก่อน</h2>
+            <div class="grid grid-cols-2 gap-4 max-w-xl">
+                <div>
+                    <label class="block text-sm font-semibold mb-1 text-gray-700">อุดหนุน (ยกมา)</label>
+                    <input type="number" v-model.number="broughtForward.ud" :disabled="!isAdmin" :class="['w-full rounded p-1.5 text-right font-bold text-lg', isAdmin ? 'border' : 'text-blue-800']">
                 </div>
-                
-                <div class="flex space-x-3 mb-1">
-                    <button v-if="isAdmin" @click="saveData" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded shadow font-semibold flex items-center">
-                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-                        บันทึกข้อมูลขึ้นระบบ
-                    </button>
-                    <button @click="exportToExcel" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow font-semibold flex items-center">
-                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        โหลดไฟล์ Excel
-                    </button>
+                <div>
+                    <label class="block text-sm font-semibold mb-1 text-gray-700">ก.พัฒน์ (ยกมา)</label>
+                    <input type="number" v-model.number="broughtForward.dev" :disabled="!isAdmin" :class="['w-full rounded p-1.5 text-right font-bold text-lg', isAdmin ? 'border' : 'text-green-800']">
+                </div>
+            </div>
+        </div>
+
+        <div v-show="activeTab === 'allocation'" class="bg-white p-4 rounded-lg shadow-md">
+            
+            <div class="flex flex-col mb-3">
+                <h2 class="text-base font-bold mb-1 text-gray-800">ส่วนที่ 1: ข้อมูลรายได้ตั้งต้น</h2>
+                <div class="grid grid-cols-4 gap-3 bg-blue-50 p-2.5 rounded border border-blue-200 text-center">
+                    <div><div class="text-xs text-gray-600">อุดหนุน</div><div class="font-bold text-base text-blue-700">{{ formatNumber(totalIncomeUd) }}</div></div>
+                    <div><div class="text-xs text-gray-600">ก.พัฒน์</div><div class="font-bold text-base text-green-700">{{ formatNumber(totalIncomeDev) }}</div></div>
+                    <div><div class="text-xs text-gray-600">อุดหนุน (ยกมา)</div><div class="font-bold text-base text-blue-700">{{ formatNumber(broughtForward.ud) }}</div></div>
+                    <div><div class="text-xs text-gray-600">ก.พัฒน์ (ยกมา)</div><div class="font-bold text-base text-green-700">{{ formatNumber(broughtForward.dev) }}</div></div>
                 </div>
             </div>
 
-            <div v-show="activeTab === 'income'" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-bold mb-4 border-b pb-2">ส่วนที่ 1: งบประมาณจากเงินรายหัวนักเรียน</h2>
-                <div class="overflow-x-auto mb-8">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-blue-100">
-                                <th class="border p-2">ระดับชั้น</th>
-                                <th class="border p-2 text-right">อุดหนุน (บาท/คน)</th>
-                                <th class="border p-2 text-right">ก.พัฒน์ (บาท/คน)</th>
-                                <th class="border p-2 text-center w-40">จำนวนนักเรียน</th>
-                                <th class="border p-2 text-right">รวมอุดหนุน (บาท)</th>
-                                <th class="border p-2 text-right">รวม ก.พัฒน์ (บาท)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(rate, level) in rates" :key="level" class="hover:bg-gray-50">
-                                <td class="border p-2">{{ levelDisplay(level) }}</td>
-                                <td class="border p-2 text-right">{{ formatNumber(rate.ud) }}</td>
-                                <td class="border p-2 text-right">{{ formatNumber(rate.dev) }}</td>
-                                <td class="border p-2">
-                                    <input type="number" v-model.number="students[level]" :disabled="!isAdmin" :class="['w-full rounded p-1 text-center', isAdmin ? 'border' : 'font-bold text-blue-800']" min="0">
-                                </td>
-                                <td class="border p-2 text-right text-blue-600 font-semibold">{{ formatNumber(students[level] * rate.ud) }}</td>
-                                <td class="border p-2 text-right text-green-600 font-semibold">{{ formatNumber(students[level] * rate.dev) }}</td>
-                            </tr>
-                            <tr class="bg-gray-100 font-bold">
-                                <td colspan="4" class="border p-2 text-right">รวมเงินรายหัวทั้งหมด</td>
-                                <td class="border p-2 text-right text-blue-700">{{ formatNumber(totalIncomeUd) }}</td>
-                                <td class="border p-2 text-right text-green-700">{{ formatNumber(totalIncomeDev) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <h2 class="text-xl font-bold mb-4 border-b pb-2">ส่วนที่ 2: ยอดยกมาจากปีการศึกษาก่อน</h2>
-                <div class="grid grid-cols-2 gap-6 max-w-xl">
-                    <div>
-                        <label class="block text-sm font-semibold mb-1 text-gray-700">อุดหนุน (ยกมา)</label>
-                        <input type="number" v-model.number="broughtForward.ud" :disabled="!isAdmin" :class="['w-full rounded p-2 text-right text-lg font-bold', isAdmin ? 'border' : 'text-blue-800']">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1 text-gray-700">ก.พัฒน์ (ยกมา)</label>
-                        <input type="number" v-model.number="broughtForward.dev" :disabled="!isAdmin" :class="['w-full rounded p-2 text-right text-lg font-bold', isAdmin ? 'border' : 'text-green-800']">
-                    </div>
-                </div>
-            </div>
-
-            <div v-show="activeTab === 'allocation'" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-lg font-bold mb-2">ส่วนที่ 1: ข้อมูลรายได้ตั้งต้น</h2>
-                <div class="grid grid-cols-4 gap-4 mb-6 bg-blue-50 p-4 rounded border border-blue-200 text-center">
-                    <div><div class="text-sm text-gray-600">อุดหนุน</div><div class="font-bold text-lg text-blue-700">{{ formatNumber(totalIncomeUd) }}</div></div>
-                    <div><div class="text-sm text-gray-600">ก.พัฒน์</div><div class="font-bold text-lg text-green-700">{{ formatNumber(totalIncomeDev) }}</div></div>
-                    <div><div class="text-sm text-gray-600">อุดหนุน (ยกมา)</div><div class="font-bold text-lg text-blue-700">{{ formatNumber(broughtForward.ud) }}</div></div>
-                    <div><div class="text-sm text-gray-600">ก.พัฒน์ (ยกมา)</div><div class="font-bold text-lg text-green-700">{{ formatNumber(broughtForward.dev) }}</div></div>
-                </div>
-
-                <h2 class="text-lg font-bold mb-2">ส่วนที่ 2: สรุปยอดเงินรายเทอม (งบที่ใช้ได้ VS จัดสรรแล้ว)</h2>
-                <div class="grid grid-cols-2 gap-6 mb-8">
-                    <div class="border rounded-lg overflow-hidden">
-                        <div class="bg-blue-600 text-white p-2 text-center font-bold">งบอุดหนุน</div>
-                        <table class="w-full text-sm">
-                            <tr class="bg-gray-100"><th colspan="2" class="p-2 border-b text-center">เทอม 1</th><th colspan="2" class="p-2 border-b text-center border-l">เทอม 2</th></tr>
-                            <tr class="text-xs text-gray-500"><th class="p-1 border-b">ยอดที่ใช้ได้</th><th class="p-1 border-b">ยอดจัดสรร</th><th class="p-1 border-b border-l">ยอดที่ใช้ได้</th><th class="p-1 border-b">ยอดจัดสรร</th></tr>
-                            <tr>
-                                <td class="p-2 text-right font-semibold text-blue-700">{{ formatNumber(budgetTerm1Ud) }}</td>
-                                <td :class="['p-2 text-right font-semibold border-r', allocatedTerm1Ud > budgetTerm1Ud ? 'text-red-500' : 'text-gray-800']">{{ formatNumber(allocatedTerm1Ud) }}</td>
-                                <td class="p-2 text-right font-semibold text-blue-700">{{ formatNumber(budgetTerm2Ud) }}</td>
-                                <td :class="['p-2 text-right font-semibold', allocatedTerm2Ud > budgetTerm2Ud ? 'text-red-500' : 'text-gray-800']">{{ formatNumber(allocatedTerm2Ud) }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="border rounded-lg overflow-hidden">
-                        <div class="bg-green-600 text-white p-2 text-center font-bold">งบ ก.พัฒน์</div>
-                        <table class="w-full text-sm">
-                            <tr class="bg-gray-100"><th colspan="2" class="p-2 border-b text-center">เทอม 1</th><th colspan="2" class="p-2 border-b text-center border-l">เทอม 2</th></tr>
-                            <tr class="text-xs text-gray-500"><th class="p-1 border-b">ยอดที่ใช้ได้</th><th class="p-1 border-b">ยอดจัดสรร</th><th class="p-1 border-b border-l">ยอดที่ใช้ได้</th><th class="p-1 border-b">ยอดจัดสรร</th></tr>
-                            <tr>
-                                <td class="p-2 text-right font-semibold text-green-700">{{ formatNumber(budgetTerm1Dev) }}</td>
-                                <td :class="['p-2 text-right font-semibold border-r', allocatedTerm1Dev > budgetTerm1Dev ? 'text-red-500' : 'text-gray-800']">{{ formatNumber(allocatedTerm1Dev) }}</td>
-                                <td class="p-2 text-right font-semibold text-green-700">{{ formatNumber(budgetTerm2Dev) }}</td>
-                                <td :class="['p-2 text-right font-semibold', allocatedTerm2Dev > budgetTerm2Dev ? 'text-red-500' : 'text-gray-800']">{{ formatNumber(allocatedTerm2Dev) }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="text-lg font-bold">ส่วนที่ 3: รายละเอียดการจัดสรรตามโครงการและกิจกรรม</h2>
-                    <button v-if="isAdmin" @click="addProject" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm shadow">+ เพิ่มโครงการ</button>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm border-collapse border border-gray-300">
-                        <thead>
-                            <tr class="bg-gray-200">
-                                <th class="border p-2 w-10 text-center">ที่</th>
-                                <th class="border p-2 w-32">กลุ่มงาน</th>
-                                <th class="border p-2 min-w-[300px]">โครงการ / กิจกรรม</th>
-                                <th class="border p-2 w-40">ผู้รับผิดชอบ</th>
-                                <th class="border p-2 w-24 text-right text-blue-800">อุดหนุน<br>เทอม 1</th>
-                                <th class="border p-2 w-24 text-right text-blue-800">อุดหนุน<br>เทอม 2</th>
-                                <th class="border p-2 w-24 text-right text-green-800">ก.พัฒน์<br>เทอม 1</th>
-                                <th class="border p-2 w-24 text-right text-green-800">ก.พัฒน์<br>เทอม 2</th>
-                                <th class="border p-2 w-28 text-right font-bold">รวมทั้งหมด</th>
-                                <th v-if="isAdmin" class="border p-2 w-16 text-center">จัดการ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-if="projects.length === 0">
-                                <td :colspan="isAdmin ? 10 : 9" class="p-8 text-center text-gray-500 bg-gray-50">
-                                    ยังไม่มีข้อมูลโครงการจัดสรรงบประมาณ <span v-if="isAdmin"><br>คลิกปุ่ม "+ เพิ่มโครงการ" ด้านขวาบนเพื่อเริ่มต้น</span>
-                                </td>
-                            </tr>
-
-                            <template v-for="(proj, pIdx) in projects" :key="proj.id">
-                                <tr class="bg-gray-50 font-semibold border-t-2 border-gray-400">
-                                    <td class="border p-2 text-center align-top mt-1">{{ pIdx + 1 }}</td>
-                                    
-                                    <td class="border p-1 align-top">
-                                        <select v-model="proj.group" :disabled="!isAdmin" class="w-full bg-transparent p-1 mt-1 focus:bg-white border-transparent focus:border-gray-300">
-                                            <option value="วิชาการ">วิชาการ</option>
-                                            <option value="งบประมาณ">งบประมาณ</option>
-                                            <option value="บุคคล">บุคคล</option>
-                                            <option value="บริหารทั่วไป">บริหารทั่วไป</option>
-                                        </select>
-                                    </td>
-
-                                    <td class="border p-1 align-top">
-                                        <div class="flex items-start">
-                                            <textarea v-model="proj.name" :disabled="!isAdmin" rows="2" class="w-full bg-transparent p-1 focus:bg-white border-transparent focus:border-gray-300 font-bold text-gray-800 leading-tight resize-y"></textarea>
-                                            <button v-if="isAdmin" @click="addActivity(pIdx)" class="ml-2 mt-1 text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded shadow min-w-[60px]" title="เพิ่มกิจกรรมย่อย">+ กิจกรรม</button>
-                                        </div>
-                                    </td>
-                                    
-                                    <td class="border p-1 align-top">
-                                        <textarea v-model="proj.owner" :disabled="!isAdmin" rows="2" class="w-full bg-transparent p-1 focus:bg-white border-transparent focus:border-gray-300 text-xs leading-tight resize-y"></textarea>
-                                    </td>
-                                    
-                                    <td class="border p-1 align-top"><input type="number" :value="getProjectTotal(pIdx, 'ud1')" @input="updateProjectVal(pIdx, 'ud1', $event)" :disabled="!isAdmin || proj.activities?.length > 0" :class="['w-full p-1 mt-1 text-right', (!isAdmin || proj.activities?.length > 0) ? 'text-gray-500 bg-transparent' : 'bg-white border rounded']"></td>
-                                    <td class="border p-1 align-top"><input type="number" :value="getProjectTotal(pIdx, 'ud2')" @input="updateProjectVal(pIdx, 'ud2', $event)" :disabled="!isAdmin || proj.activities?.length > 0" :class="['w-full p-1 mt-1 text-right', (!isAdmin || proj.activities?.length > 0) ? 'text-gray-500 bg-transparent' : 'bg-white border rounded']"></td>
-                                    <td class="border p-1 align-top"><input type="number" :value="getProjectTotal(pIdx, 'dev1')" @input="updateProjectVal(pIdx, 'dev1', $event)" :disabled="!isAdmin || proj.activities?.length > 0" :class="['w-full p-1 mt-1 text-right', (!isAdmin || proj.activities?.length > 0) ? 'text-gray-500 bg-transparent' : 'bg-white border rounded']"></td>
-                                    <td class="border p-1 align-top"><input type="number" :value="getProjectTotal(pIdx, 'dev2')" @input="updateProjectVal(pIdx, 'dev2', $event)" :disabled="!isAdmin || proj.activities?.length > 0" :class="['w-full p-1 mt-1 text-right', (!isAdmin || proj.activities?.length > 0) ? 'text-gray-500 bg-transparent' : 'bg-white border rounded']"></td>
-                                    <td class="border p-2 text-right font-bold align-top mt-1">{{ formatNumber(getProjectGrandTotal(pIdx)) }}</td>
-                                    <td v-if="isAdmin" class="border p-1 text-center align-top">
-                                        <button @click="removeProject(pIdx)" class="text-red-500 hover:text-red-700 font-bold px-1 mt-1">ลบ</button>
-                                    </td>
+            <div class="flex flex-col mb-4">
+                <h2 class="text-base font-bold mb-1 text-gray-800">ส่วนที่ 2: สรุปยอดเงินรายเทอม (งบที่ใช้ได้ VS จัดสรรแล้ว)</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="border rounded-lg overflow-hidden flex flex-col h-full shadow-sm">
+                        <div class="bg-blue-600 text-white p-1.5 text-center text-sm font-bold">งบอุดหนุน</div>
+                        <div class="flex-grow">
+                            <table class="w-full text-sm">
+                                <tr class="bg-gray-100"><th colspan="2" class="p-1.5 border-b text-center">เทอม 1</th><th colspan="2" class="p-1.5 border-b text-center border-l">เทอม 2</th></tr>
+                                <tr class="text-xs text-gray-500"><th class="p-1.5 border-b w-1/4">ใช้ได้</th><th class="p-1.5 border-b w-1/4">จัดสรร</th><th class="p-1.5 border-b border-l w-1/4">ใช้ได้</th><th class="p-1.5 border-b w-1/4">จัดสรร</th></tr>
+                                <tr>
+                                    <td class="p-1.5 text-right font-semibold text-blue-700">{{ formatNumber(budgetTerm1Ud) }}</td>
+                                    <td :class="['p-1.5 text-right font-semibold border-r', allocatedTerm1Ud > budgetTerm1Ud ? 'text-red-500' : 'text-gray-800']">{{ formatNumber(allocatedTerm1Ud) }}</td>
+                                    <td class="p-1.5 text-right font-semibold text-blue-700">{{ formatNumber(budgetTerm2Ud) }}</td>
+                                    <td :class="['p-1.5 text-right font-semibold', allocatedTerm2Ud > budgetTerm2Ud ? 'text-red-500' : 'text-gray-800']">{{ formatNumber(allocatedTerm2Ud) }}</td>
                                 </tr>
+                            </table>
+                        </div>
+                        <div class="bg-blue-50 p-2 px-4 flex justify-between items-center border-t border-blue-200">
+                            <div class="text-xs text-gray-600 leading-snug">
+                                <div>รวมใช้ได้: <span class="font-bold">{{ formatNumber(budgetTerm1Ud + budgetTerm2Ud) }}</span></div>
+                                <div>รวมจัดสรร: <span class="font-bold">{{ formatNumber(allocatedTerm1Ud + allocatedTerm2Ud) }}</span></div>
+                            </div>
+                            <div class="text-base font-bold">
+                                คงเหลือ: <span :class="remainingUd < 0 ? 'text-red-600' : 'text-blue-700'">{{ formatNumber(remainingUd) }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg overflow-hidden flex flex-col h-full shadow-sm">
+                        <div class="bg-green-600 text-white p-1.5 text-center text-sm font-bold">งบ ก.พัฒน์</div>
+                        <div class="flex-grow">
+                            <table class="w-full text-sm">
+                                <tr class="bg-gray-100"><th colspan="2" class="p-1.5 border-b text-center">เทอม 1</th><th colspan="2" class="p-1.5 border-b text-center border-l">เทอม 2</th></tr>
+                                <tr class="text-xs text-gray-500"><th class="p-1.5 border-b w-1/4">ใช้ได้</th><th class="p-1.5 border-b w-1/4">จัดสรร</th><th class="p-1.5 border-b border-l w-1/4">ใช้ได้</th><th class="p-1.5 border-b w-1/4">จัดสรร</th></tr>
+                                <tr>
+                                    <td class="p-1.5 text-right font-semibold text-green-700">{{ formatNumber(budgetTerm1Dev) }}</td>
+                                    <td :class="['p-1.5 text-right font-semibold border-r', allocatedTerm1Dev > budgetTerm1Dev ? 'text-red-500' : 'text-gray-800']">{{ formatNumber(allocatedTerm1Dev) }}</td>
+                                    <td class="p-1.5 text-right font-semibold text-green-700">{{ formatNumber(budgetTerm2Dev) }}</td>
+                                    <td :class="['p-1.5 text-right font-semibold', allocatedTerm2Dev > budgetTerm2Dev ? 'text-red-500' : 'text-gray-800']">{{ formatNumber(allocatedTerm2Dev) }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="bg-green-50 p-2 px-4 flex justify-between items-center border-t border-green-200">
+                            <div class="text-xs text-gray-600 leading-snug">
+                                <div>รวมใช้ได้: <span class="font-bold">{{ formatNumber(budgetTerm1Dev + budgetTerm2Dev) }}</span></div>
+                                <div>รวมจัดสรร: <span class="font-bold">{{ formatNumber(allocatedTerm1Dev + allocatedTerm2Dev) }}</span></div>
+                            </div>
+                            <div class="text-base font-bold">
+                                คงเหลือ: <span :class="remainingDev < 0 ? 'text-red-600' : 'text-green-700'">{{ formatNumber(remainingDev) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-1.5 mt-2">
+                <h2 class="text-base font-bold">ส่วนที่ 3: รายละเอียดการจัดสรรตามโครงการและกิจกรรม</h2>
+                <button v-if="isAdmin" @click="addProject" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm shadow">+ เพิ่มโครงการ</button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border p-1.5 w-10 text-center">ที่</th>
+                            <th class="border p-1.5 w-32">กลุ่มงาน</th>
+                            <th class="border p-1.5 min-w-[280px]">โครงการ / กิจกรรม</th>
+                            <th class="border p-1.5 w-40">ผู้รับผิดชอบ</th>
+                            <th class="border p-1.5 w-24 text-right text-blue-800 leading-tight">อุดหนุน<br>เทอม 1</th>
+                            <th class="border p-1.5 w-24 text-right text-blue-800 leading-tight">อุดหนุน<br>เทอม 2</th>
+                            <th class="border p-1.5 w-24 text-right text-green-800 leading-tight">ก.พัฒน์<br>เทอม 1</th>
+                            <th class="border p-1.5 w-24 text-right text-green-800 leading-tight">ก.พัฒน์<br>เทอม 2</th>
+                            <th class="border p-1.5 w-28 text-right font-bold leading-tight">รวมทั้งหมด</th>
+                            <th v-if="isAdmin" class="border p-1.5 w-16 text-center">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-if="projects.length === 0">
+                            <td :colspan="isAdmin ? 10 : 9" class="p-8 text-center text-gray-500 bg-gray-50">
+                                ยังไม่มีข้อมูลโครงการ <span v-if="isAdmin"><br>คลิกปุ่ม "+ เพิ่มโครงการ" เพื่อเริ่มต้น</span>
+                            </td>
+                        </tr>
+
+                        <template v-for="(proj, pIdx) in projects" :key="proj.id">
+                            <tr class="bg-gray-50 font-semibold border-t-2 border-gray-400">
+                                <td class="border p-1 text-center align-top mt-1.5">{{ pIdx + 1 }}</td>
                                 
-                                <tr v-for="(act, aIdx) in proj.activities" :key="act.id" class="bg-white hover:bg-yellow-50">
-                                    <td class="border p-2"></td>
-                                    <td class="border p-2"></td>
-                                    <td class="border p-1 pl-6 align-top">
-                                        <div class="flex items-start mt-1">
-                                            <span class="text-gray-400 mr-2 leading-snug">↳</span>
-                                            <textarea v-model="act.name" :disabled="!isAdmin" rows="2" class="w-full bg-transparent border-transparent p-1 text-sm focus:bg-white focus:border-blue-500 leading-tight resize-y" placeholder="ชื่อกิจกรรม"></textarea>
-                                        </div>
-                                    </td>
-                                    <td class="border p-1 align-top">
-                                        <textarea v-model="act.owner" :disabled="!isAdmin" rows="2" class="w-full bg-transparent border-transparent p-1 text-xs focus:bg-white focus:border-blue-500 leading-tight resize-y"></textarea>
-                                    </td>
-                                    <td class="border p-1 align-top"><input type="number" v-model.number="act.ud1" :disabled="!isAdmin" :class="['w-full p-1 mt-1 text-right text-blue-900', isAdmin ? 'border rounded bg-blue-50' : 'bg-transparent border-transparent']"></td>
-                                    <td class="border p-1 align-top"><input type="number" v-model.number="act.ud2" :disabled="!isAdmin" :class="['w-full p-1 mt-1 text-right text-blue-900', isAdmin ? 'border rounded bg-blue-50' : 'bg-transparent border-transparent']"></td>
-                                    <td class="border p-1 align-top"><input type="number" v-model.number="act.dev1" :disabled="!isAdmin" :class="['w-full p-1 mt-1 text-right text-green-900', isAdmin ? 'border rounded bg-green-50' : 'bg-transparent border-transparent']"></td>
-                                    <td class="border p-1 align-top"><input type="number" v-model.number="act.dev2" :disabled="!isAdmin" :class="['w-full p-1 mt-1 text-right text-green-900', isAdmin ? 'border rounded bg-green-50' : 'bg-transparent border-transparent']"></td>
-                                    <td class="border p-2 text-right align-top mt-1">{{ formatNumber((act.ud1||0) + (act.ud2||0) + (act.dev1||0) + (act.dev2||0)) }}</td>
-                                    <td v-if="isAdmin" class="border p-1 text-center align-top">
-                                        <button @click="removeActivity(pIdx, aIdx)" class="text-red-400 hover:text-red-600 text-xs px-1 mt-2 border border-red-200 rounded bg-white">ลบ</button>
-                                    </td>
-                                </tr>
-                            </template>
-                        </tbody>
-                        <tfoot>
-                            <tr class="bg-gray-800 text-white font-bold">
-                                <td colspan="4" class="border p-3 text-right">รวมจัดสรรทั้งหมด</td>
-                                <td class="border p-3 text-right" :class="{'text-red-400': allocatedTerm1Ud > budgetTerm1Ud}">{{ formatNumber(allocatedTerm1Ud) }}</td>
-                                <td class="border p-3 text-right" :class="{'text-red-400': allocatedTerm2Ud > budgetTerm2Ud}">{{ formatNumber(allocatedTerm2Ud) }}</td>
-                                <td class="border p-3 text-right" :class="{'text-red-400': allocatedTerm1Dev > budgetTerm1Dev}">{{ formatNumber(allocatedTerm1Dev) }}</td>
-                                <td class="border p-3 text-right" :class="{'text-red-400': allocatedTerm2Dev > budgetTerm2Dev}">{{ formatNumber(allocatedTerm2Dev) }}</td>
-                                <td class="border p-3 text-right">{{ formatNumber(allocatedTerm1Ud + allocatedTerm2Ud + allocatedTerm1Dev + allocatedTerm2Dev) }}</td>
-                                <td v-if="isAdmin" class="border p-3"></td>
+                                <td class="border p-1 align-top">
+                                    <select v-model="proj.group" :disabled="!isAdmin" class="w-full bg-transparent p-1 mt-1 focus:bg-white border-transparent focus:border-gray-300 text-sm">
+                                        <option value="วิชาการ">วิชาการ</option>
+                                        <option value="งบประมาณ">งบประมาณ</option>
+                                        <option value="บุคคล">บุคคล</option>
+                                        <option value="บริหารทั่วไป">บริหารทั่วไป</option>
+                                    </select>
+                                </td>
+
+                                <td class="border p-1 align-top">
+                                    <div class="flex items-start">
+                                        <textarea v-model="proj.name" :disabled="!isAdmin" rows="1" class="w-full bg-transparent p-1 mt-0.5 focus:bg-white border-transparent focus:border-gray-300 font-bold text-gray-800 leading-tight resize-y text-sm"></textarea>
+                                        <button v-if="isAdmin" @click="addActivity(pIdx)" class="ml-1 mt-1.5 text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded shadow min-w-[65px]">+ กิจกรรม</button>
+                                    </div>
+                                </td>
+                                
+                                <td class="border p-1 align-top">
+                                    <textarea v-model="proj.owner" :disabled="!isAdmin" rows="1" class="w-full bg-transparent p-1 mt-0.5 focus:bg-white border-transparent focus:border-gray-300 text-sm leading-tight resize-y"></textarea>
+                                </td>
+                                
+                                <td class="border p-1 align-top"><input type="number" :value="getProjectTotal(pIdx, 'ud1')" @input="updateProjectVal(pIdx, 'ud1', $event)" :disabled="!isAdmin || proj.activities?.length > 0" :class="['w-full p-1.5 mt-1 text-right text-sm', (!isAdmin || proj.activities?.length > 0) ? 'text-gray-500 bg-transparent' : 'bg-white border rounded']"></td>
+                                <td class="border p-1 align-top"><input type="number" :value="getProjectTotal(pIdx, 'ud2')" @input="updateProjectVal(pIdx, 'ud2', $event)" :disabled="!isAdmin || proj.activities?.length > 0" :class="['w-full p-1.5 mt-1 text-right text-sm', (!isAdmin || proj.activities?.length > 0) ? 'text-gray-500 bg-transparent' : 'bg-white border rounded']"></td>
+                                <td class="border p-1 align-top"><input type="number" :value="getProjectTotal(pIdx, 'dev1')" @input="updateProjectVal(pIdx, 'dev1', $event)" :disabled="!isAdmin || proj.activities?.length > 0" :class="['w-full p-1.5 mt-1 text-right text-sm', (!isAdmin || proj.activities?.length > 0) ? 'text-gray-500 bg-transparent' : 'bg-white border rounded']"></td>
+                                <td class="border p-1 align-top"><input type="number" :value="getProjectTotal(pIdx, 'dev2')" @input="updateProjectVal(pIdx, 'dev2', $event)" :disabled="!isAdmin || proj.activities?.length > 0" :class="['w-full p-1.5 mt-1 text-right text-sm', (!isAdmin || proj.activities?.length > 0) ? 'text-gray-500 bg-transparent' : 'bg-white border rounded']"></td>
+                                <td class="border p-1.5 text-right font-bold align-top mt-1 text-sm">{{ formatNumber(getProjectGrandTotal(pIdx)) }}</td>
+                                <td v-if="isAdmin" class="border p-1 text-center align-top">
+                                    <button @click="removeProject(pIdx)" class="text-red-500 hover:text-red-700 font-bold px-2 mt-1.5 text-sm">ลบ</button>
+                                </td>
                             </tr>
-                        </tfoot>
-                    </table>
-                </div>
+                            
+                            <tr v-for="(act, aIdx) in proj.activities" :key="act.id" class="bg-white hover:bg-yellow-50">
+                                <td class="border p-1"></td>
+                                <td class="border p-1"></td>
+                                <td class="border p-1 pl-6 align-top">
+                                    <div class="flex items-start mt-0.5">
+                                        <span class="text-gray-400 mr-2 mt-1 text-sm">↳</span>
+                                        <textarea v-model="act.name" :disabled="!isAdmin" rows="1" class="w-full bg-transparent border-transparent p-1 text-sm focus:bg-white focus:border-blue-500 leading-tight resize-y" placeholder="ชื่อกิจกรรม"></textarea>
+                                    </div>
+                                </td>
+                                <td class="border p-1 align-top">
+                                    <textarea v-model="act.owner" :disabled="!isAdmin" rows="1" class="w-full bg-transparent border-transparent p-1 text-sm focus:bg-white focus:border-blue-500 leading-tight resize-y"></textarea>
+                                </td>
+                                <td class="border p-1 align-top"><input type="number" v-model.number="act.ud1" :disabled="!isAdmin" :class="['w-full p-1.5 mt-0.5 text-right text-sm text-blue-900', isAdmin ? 'border rounded bg-blue-50' : 'bg-transparent border-transparent']"></td>
+                                <td class="border p-1 align-top"><input type="number" v-model.number="act.ud2" :disabled="!isAdmin" :class="['w-full p-1.5 mt-0.5 text-right text-sm text-blue-900', isAdmin ? 'border rounded bg-blue-50' : 'bg-transparent border-transparent']"></td>
+                                <td class="border p-1 align-top"><input type="number" v-model.number="act.dev1" :disabled="!isAdmin" :class="['w-full p-1.5 mt-0.5 text-right text-sm text-green-900', isAdmin ? 'border rounded bg-green-50' : 'bg-transparent border-transparent']"></td>
+                                <td class="border p-1 align-top"><input type="number" v-model.number="act.dev2" :disabled="!isAdmin" :class="['w-full p-1.5 mt-0.5 text-right text-sm text-green-900', isAdmin ? 'border rounded bg-green-50' : 'bg-transparent border-transparent']"></td>
+                                <td class="border p-1.5 text-right align-top mt-1 text-sm">{{ formatNumber((act.ud1||0) + (act.ud2||0) + (act.dev1||0) + (act.dev2||0)) }}</td>
+                                <td v-if="isAdmin" class="border p-1 text-center align-top">
+                                    <button @click="removeActivity(pIdx, aIdx)" class="text-red-400 hover:text-red-600 text-xs px-2 mt-1.5 border border-red-200 rounded bg-white">ลบ</button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-gray-800 text-white font-bold text-sm">
+                            <td colspan="4" class="border p-2.5 text-right">รวมจัดสรรทั้งหมด</td>
+                            <td class="border p-2.5 text-right" :class="{'text-red-400': allocatedTerm1Ud > budgetTerm1Ud}">{{ formatNumber(allocatedTerm1Ud) }}</td>
+                            <td class="border p-2.5 text-right" :class="{'text-red-400': allocatedTerm2Ud > budgetTerm2Ud}">{{ formatNumber(allocatedTerm2Ud) }}</td>
+                            <td class="border p-2.5 text-right" :class="{'text-red-400': allocatedTerm1Dev > budgetTerm1Dev}">{{ formatNumber(allocatedTerm1Dev) }}</td>
+                            <td class="border p-2.5 text-right" :class="{'text-red-400': allocatedTerm2Dev > budgetTerm2Dev}">{{ formatNumber(allocatedTerm2Dev) }}</td>
+                            <td class="border p-2.5 text-right text-base">{{ formatNumber(allocatedTerm1Ud + allocatedTerm2Ud + allocatedTerm1Dev + allocatedTerm2Dev) }}</td>
+                            <td v-if="isAdmin" class="border p-2.5"></td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
     </div>
@@ -264,18 +282,15 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
         import { getDatabase, ref as fbRef, set, onValue } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js';
 
-        // ----------------------------------------------------------------------
-        // ⚠️ นำ Config จากหน้าเว็บ Firebase ของคุณมาวางทับส่วนนี้ ⚠️
-        // ----------------------------------------------------------------------
-		const firebaseConfig = {
-		  apiKey: "AIzaSyAuvgKuLX6fjX6N6fQORKuTNag0zpRKYcs",
-		  authDomain: "mt-budget.firebaseapp.com",
-		  databaseURL: "https://mt-budget-default-rtdb.asia-southeast1.firebasedatabase.app",
-		  projectId: "mt-budget",
-		  storageBucket: "mt-budget.firebasestorage.app",
-		  messagingSenderId: "933133512768",
-		  appId: "1:933133512768:web:7e7150a3bac071b455efa5"
-		};
+        const firebaseConfig = {
+          apiKey: "AIzaSyAuvgKuLX6fjX6N6fQORKuTNag0zpRKYcs",
+          authDomain: "mt-budget.firebaseapp.com",
+          databaseURL: "https://mt-budget-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "mt-budget",
+          storageBucket: "mt-budget.firebasestorage.app",
+          messagingSenderId: "933133512768",
+          appId: "1:933133512768:web:7e7150a3bac071b455efa5"
+        };
         
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
@@ -581,6 +596,9 @@
                 const allocatedTerm1Dev = computed(() => projects.value.reduce((sum, p, i) => sum + getProjectTotal(i, 'dev1'), 0));
                 const allocatedTerm2Dev = computed(() => projects.value.reduce((sum, p, i) => sum + getProjectTotal(i, 'dev2'), 0));
 
+                const remainingUd = computed(() => (totalIncomeUd.value + broughtForward.value.ud) - (allocatedTerm1Ud.value + allocatedTerm2Ud.value));
+                const remainingDev = computed(() => (totalIncomeDev.value + broughtForward.value.dev) - (allocatedTerm1Dev.value + allocatedTerm2Dev.value));
+
                 const addProject = () => {
                     projects.value.push({ id: Date.now().toString(), group: 'วิชาการ', name: 'โครงการใหม่', owner: '', ud1: 0, ud2: 0, dev1: 0, dev2: 0, activities: [] });
                 };
@@ -642,6 +660,7 @@
                     totalIncomeUd, totalIncomeDev,
                     budgetTerm1Ud, budgetTerm2Ud, budgetTerm1Dev, budgetTerm2Dev,
                     allocatedTerm1Ud, allocatedTerm2Ud, allocatedTerm1Dev, allocatedTerm2Dev,
+                    remainingUd, remainingDev,
                     getProjectTotal, getProjectGrandTotal, updateProjectVal,
                     addProject, removeProject, addActivity, removeActivity,
                     formatNumber, levelDisplay, saveData, exportToExcel
