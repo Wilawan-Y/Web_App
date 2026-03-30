@@ -79,8 +79,14 @@
                     <tbody>
                         <tr v-for="(rate, level) in rates" :key="level" class="hover:bg-gray-50">
                             <td class="border p-1.5 px-3">{{ levelDisplay(level) }}</td>
-                            <td class="border p-1.5 px-3 text-right">{{ formatNumber(rate.ud) }}</td>
-                            <td class="border p-1.5 px-3 text-right">{{ formatNumber(rate.dev) }}</td>
+                            
+                            <td class="border p-1">
+                                <input type="number" v-model.number="rates[level].ud" :disabled="!isAdmin" :class="['w-full rounded p-1 text-right', isAdmin ? 'border' : 'text-gray-800']" min="0">
+                            </td>
+                            <td class="border p-1">
+                                <input type="number" v-model.number="rates[level].dev" :disabled="!isAdmin" :class="['w-full rounded p-1 text-right', isAdmin ? 'border' : 'text-gray-800']" min="0">
+                            </td>
+
                             <td class="border p-1">
                                 <input type="number" v-model.number="students[level]" :disabled="!isAdmin" :class="['w-full rounded p-1 text-center', isAdmin ? 'border' : 'font-bold text-blue-800']" min="0">
                             </td>
@@ -306,13 +312,14 @@
                 const students = ref({ kg: 0, p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0, m1: 0, m2: 0, m3: 0 });
                 const broughtForward = ref({ ud: 0, dev: 0 });
                 const projects = ref([]);
-
-                const rates = {
+                
+                // เปลี่ยน rates ให้เป็นแบบอ้างอิงและแก้ค่าได้
+                const rates = ref({
                     kg: { ud: 1972, dev: 490 },
                     p1: { ud: 2204, dev: 546 }, p2: { ud: 2204, dev: 546 }, p3: { ud: 2204, dev: 546 },
                     p4: { ud: 2204, dev: 546 }, p5: { ud: 2204, dev: 546 }, p6: { ud: 2204, dev: 546 },
                     m1: { ud: 4060, dev: 1002 }, m2: { ud: 4060, dev: 1002 }, m3: { ud: 4060, dev: 1002 }
-                };
+                });
 
                 const defaultProjects = [
                     {
@@ -541,6 +548,7 @@
                     onValue(dbBudgetRef, (snapshot) => {
                         const data = snapshot.val();
                         if (data) {
+                            if (data.rates) rates.value = data.rates; // ดึงข้อมูลอัตราจัดสรรจาก Firebase
                             if (data.students) students.value = data.students;
                             if (data.broughtForward) broughtForward.value = data.broughtForward;
                             if (data.projects) projects.value = data.projects;
@@ -554,6 +562,7 @@
                     if (!isAdmin.value) return; 
 
                     set(dbBudgetRef, {
+                        rates: rates.value, // บันทึกอัตราจัดสรรขึ้น Firebase ด้วย
                         students: students.value,
                         broughtForward: broughtForward.value,
                         projects: projects.value
@@ -564,8 +573,9 @@
                     });
                 };
 
-                const totalIncomeUd = computed(() => Object.keys(students.value).reduce((sum, key) => sum + (students.value[key] * rates[key].ud), 0));
-                const totalIncomeDev = computed(() => Object.keys(students.value).reduce((sum, key) => sum + (students.value[key] * rates[key].dev), 0));
+                // คำนวณรายได้โดยอ้างอิงจาก rates.value ที่สามารถเปลี่ยนค่าได้
+                const totalIncomeUd = computed(() => Object.keys(students.value).reduce((sum, key) => sum + (students.value[key] * rates.value[key].ud), 0));
+                const totalIncomeDev = computed(() => Object.keys(students.value).reduce((sum, key) => sum + (students.value[key] * rates.value[key].dev), 0));
 
                 const budgetTerm1Ud = computed(() => (totalIncomeUd.value * 0.7) + broughtForward.value.ud);
                 const budgetTerm2Ud = computed(() => totalIncomeUd.value * 0.3);
