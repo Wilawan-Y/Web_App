@@ -10,28 +10,16 @@
         input[type="number"] { text-align: right; }
         .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
-        
-        textarea {
-            field-sizing: content;
-            min-height: 2.5rem;
-        }
-        
+        textarea { field-sizing: content; min-height: 2.5rem; }
         input:disabled, select:disabled, textarea:disabled {
             background-color: transparent !important;
             border-color: transparent !important;
             color: #1f2937 !important;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            cursor: default;
+            -webkit-appearance: none; -moz-appearance: none; cursor: default;
         }
-        textarea:disabled {
-            resize: none;
-            overflow: hidden;
-        }
-        input:disabled::-webkit-outer-spin-button,
-        input:disabled::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        textarea:disabled { resize: none; overflow: hidden; }
+        input:disabled::-webkit-outer-spin-button, input:disabled::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0;
         }
     </style>
 </head>
@@ -63,6 +51,7 @@
         </div>
 
         <div v-show="activeTab === 'income'" class="bg-white p-4 rounded-lg shadow-md">
+            <!-- ส่วนที่ 1 และ 2 ของหน้าประมาณการรายได้ (เหมือนเดิม) -->
             <h2 class="text-lg font-bold mb-2 border-b pb-1">ส่วนที่ 1: งบประมาณจากเงินรายหัวนักเรียน</h2>
             <div class="overflow-x-auto mb-6">
                 <table class="w-full text-left border-collapse text-base">
@@ -79,17 +68,9 @@
                     <tbody>
                         <tr v-for="level in levelOrder" :key="level" class="hover:bg-gray-50">
                             <td class="border p-1.5 px-3">{{ levelDisplay(level) }}</td>
-                            
-                            <td class="border p-1">
-                                <input type="number" v-model.number="rates[level].ud" :disabled="!isAdmin" :class="['w-full rounded p-1 text-right', isAdmin ? 'border' : 'text-gray-800']" min="0">
-                            </td>
-                            <td class="border p-1">
-                                <input type="number" v-model.number="rates[level].dev" :disabled="!isAdmin" :class="['w-full rounded p-1 text-right', isAdmin ? 'border' : 'text-gray-800']" min="0">
-                            </td>
-
-                            <td class="border p-1">
-                                <input type="number" v-model.number="students[level]" :disabled="!isAdmin" :class="['w-full rounded p-1 text-center', isAdmin ? 'border' : 'font-bold text-blue-800']" min="0">
-                            </td>
+                            <td class="border p-1"><input type="number" v-model.number="rates[level].ud" :disabled="!isAdmin" :class="['w-full rounded p-1 text-right', isAdmin ? 'border' : 'text-gray-800']" min="0"></td>
+                            <td class="border p-1"><input type="number" v-model.number="rates[level].dev" :disabled="!isAdmin" :class="['w-full rounded p-1 text-right', isAdmin ? 'border' : 'text-gray-800']" min="0"></td>
+                            <td class="border p-1"><input type="number" v-model.number="students[level]" :disabled="!isAdmin" :class="['w-full rounded p-1 text-center', isAdmin ? 'border' : 'font-bold text-blue-800']" min="0"></td>
                             <td class="border p-1.5 px-3 text-right text-blue-600 font-semibold">{{ formatNumber(students[level] * rates[level].ud) }}</td>
                             <td class="border p-1.5 px-3 text-right text-green-600 font-semibold">{{ formatNumber(students[level] * rates[level].dev) }}</td>
                         </tr>
@@ -104,14 +85,8 @@
 
             <h2 class="text-lg font-bold mb-2 border-b pb-1">ส่วนที่ 2: ยอดยกมาจากปีการศึกษาก่อน</h2>
             <div class="grid grid-cols-2 gap-4 max-w-xl">
-                <div>
-                    <label class="block text-sm font-semibold mb-1 text-gray-700">อุดหนุน (ยกมา)</label>
-                    <input type="number" v-model.number="broughtForward.ud" :disabled="!isAdmin" :class="['w-full rounded p-1.5 text-right font-bold text-lg', isAdmin ? 'border' : 'text-blue-800']">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-1 text-gray-700">ก.พัฒน์ (ยกมา)</label>
-                    <input type="number" v-model.number="broughtForward.dev" :disabled="!isAdmin" :class="['w-full rounded p-1.5 text-right font-bold text-lg', isAdmin ? 'border' : 'text-green-800']">
-                </div>
+                <div><label class="block text-sm font-semibold mb-1 text-gray-700">อุดหนุน (ยกมา)</label><input type="number" v-model.number="broughtForward.ud" :disabled="!isAdmin" :class="['w-full rounded p-1.5 text-right font-bold text-lg', isAdmin ? 'border' : 'text-blue-800']"></div>
+                <div><label class="block text-sm font-semibold mb-1 text-gray-700">ก.พัฒน์ (ยกมา)</label><input type="number" v-model.number="broughtForward.dev" :disabled="!isAdmin" :class="['w-full rounded p-1.5 text-right font-bold text-lg', isAdmin ? 'border' : 'text-green-800']"></div>
             </div>
         </div>
 
@@ -149,9 +124,7 @@
                                 <div>รวมใช้ได้: <span class="font-bold">{{ formatNumber(budgetTerm1Ud + budgetTerm2Ud) }}</span></div>
                                 <div>รวมจัดสรร: <span class="font-bold">{{ formatNumber(allocatedTerm1Ud + allocatedTerm2Ud) }}</span></div>
                             </div>
-                            <div class="text-base font-bold">
-                                คงเหลือ: <span :class="remainingUd < 0 ? 'text-red-600' : 'text-blue-700'">{{ formatNumber(remainingUd) }}</span>
-                            </div>
+                            <div class="text-base font-bold">คงเหลือ: <span :class="remainingUd < 0 ? 'text-red-600' : 'text-blue-700'">{{ formatNumber(remainingUd) }}</span></div>
                         </div>
                     </div>
 
@@ -174,17 +147,43 @@
                                 <div>รวมใช้ได้: <span class="font-bold">{{ formatNumber(budgetTerm1Dev + budgetTerm2Dev) }}</span></div>
                                 <div>รวมจัดสรร: <span class="font-bold">{{ formatNumber(allocatedTerm1Dev + allocatedTerm2Dev) }}</span></div>
                             </div>
-                            <div class="text-base font-bold">
-                                คงเหลือ: <span :class="remainingDev < 0 ? 'text-red-600' : 'text-green-700'">{{ formatNumber(remainingDev) }}</span>
-                            </div>
+                            <div class="text-base font-bold">คงเหลือ: <span :class="remainingDev < 0 ? 'text-red-600' : 'text-green-700'">{{ formatNumber(remainingDev) }}</span></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex justify-between items-center mb-1.5 mt-2">
-                <h2 class="text-base font-bold">ส่วนที่ 3: รายละเอียดการจัดสรรตามโครงการและกิจกรรม</h2>
-                <button v-if="isAdmin" @click="addProject" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm shadow">+ เพิ่มโครงการ</button>
+            <div class="flex flex-col mb-4 mt-4">
+                <h2 class="text-base font-bold mb-1 text-gray-800">ส่วนที่ 3: สรุปยอดเงินจัดสรรตามกลุ่มงาน</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border-collapse border border-gray-300">
+                        <tr class="bg-gray-200">
+                            <th class="border p-1.5">กลุ่มงาน</th>
+                            <th class="border p-1.5 text-right text-blue-800">อุดหนุน เทอม 1</th>
+                            <th class="border p-1.5 text-right text-blue-800">อุดหนุน เทอม 2</th>
+                            <th class="border p-1.5 text-right text-green-800">ก.พัฒน์ เทอม 1</th>
+                            <th class="border p-1.5 text-right text-green-800">ก.พัฒน์ เทอม 2</th>
+                            <th class="border p-1.5 text-right font-bold">รวมทั้งหมด</th>
+                        </tr>
+                        <tr v-for="(totals, groupName) in groupTotals" :key="groupName" class="bg-white">
+                            <td class="border p-1.5 font-bold text-center">{{ groupName }}</td>
+                            <td class="border p-1.5 text-right text-blue-700">{{ formatNumber(totals.ud1) }}</td>
+                            <td class="border p-1.5 text-right text-blue-700">{{ formatNumber(totals.ud2) }}</td>
+                            <td class="border p-1.5 text-right text-green-700">{{ formatNumber(totals.dev1) }}</td>
+                            <td class="border p-1.5 text-right text-green-700">{{ formatNumber(totals.dev2) }}</td>
+                            <td class="border p-1.5 text-right font-bold">{{ formatNumber(totals.total) }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-1.5 mt-2 border-t pt-4">
+                <h2 class="text-base font-bold">ส่วนที่ 4: รายละเอียดการจัดสรรตามโครงการและกิจกรรม</h2>
+                <div>
+                    <!-- ปุ่มเคลียร์ยอดจัดสรร -->
+                    <button v-if="isAdmin" @click="clearAllocation" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-sm shadow mr-2">🗑️ เคลียร์ยอดจัดสรร</button>
+                    <button v-if="isAdmin" @click="addProject" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm shadow">+ เพิ่มโครงการ</button>
+                </div>
             </div>
             
             <div class="overflow-x-auto">
@@ -213,7 +212,6 @@
                         <template v-for="(proj, pIdx) in projects" :key="proj.id">
                             <tr class="bg-gray-50 font-semibold border-t-2 border-gray-400">
                                 <td class="border p-1 text-center align-top mt-1.5">{{ pIdx + 1 }}</td>
-                                
                                 <td class="border p-1 align-top">
                                     <select v-model="proj.group" :disabled="!isAdmin" class="w-full bg-transparent p-1 mt-1 focus:bg-white border-transparent focus:border-gray-300 text-sm">
                                         <option value="วิชาการ">วิชาการ</option>
@@ -222,18 +220,15 @@
                                         <option value="บริหารทั่วไป">บริหารทั่วไป</option>
                                     </select>
                                 </td>
-
                                 <td class="border p-1 align-top">
                                     <div class="flex items-start">
                                         <textarea v-model="proj.name" :disabled="!isAdmin" rows="1" class="w-full bg-transparent p-1 mt-0.5 focus:bg-white border-transparent focus:border-gray-300 font-bold text-gray-800 leading-tight resize-y text-sm"></textarea>
                                         <button v-if="isAdmin" @click="addActivity(pIdx)" class="ml-1 mt-1.5 text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded shadow min-w-[65px]">+ กิจกรรม</button>
                                     </div>
                                 </td>
-                                
                                 <td class="border p-1 align-top">
                                     <textarea v-model="proj.owner" :disabled="!isAdmin" rows="1" class="w-full bg-transparent p-1 mt-0.5 focus:bg-white border-transparent focus:border-gray-300 text-sm leading-tight resize-y"></textarea>
                                 </td>
-                                
                                 <td class="border p-1 align-top"><input type="number" :value="getProjectTotal(pIdx, 'ud1')" @input="updateProjectVal(pIdx, 'ud1', $event)" :disabled="!isAdmin || proj.activities?.length > 0" :class="['w-full p-1.5 mt-1 text-right text-sm', (!isAdmin || proj.activities?.length > 0) ? 'text-gray-500 bg-transparent' : 'bg-white border rounded']"></td>
                                 <td class="border p-1 align-top"><input type="number" :value="getProjectTotal(pIdx, 'ud2')" @input="updateProjectVal(pIdx, 'ud2', $event)" :disabled="!isAdmin || proj.activities?.length > 0" :class="['w-full p-1.5 mt-1 text-right text-sm', (!isAdmin || proj.activities?.length > 0) ? 'text-gray-500 bg-transparent' : 'bg-white border rounded']"></td>
                                 <td class="border p-1 align-top"><input type="number" :value="getProjectTotal(pIdx, 'dev1')" @input="updateProjectVal(pIdx, 'dev1', $event)" :disabled="!isAdmin || proj.activities?.length > 0" :class="['w-full p-1.5 mt-1 text-right text-sm', (!isAdmin || proj.activities?.length > 0) ? 'text-gray-500 bg-transparent' : 'bg-white border rounded']"></td>
@@ -253,9 +248,7 @@
                                         <textarea v-model="act.name" :disabled="!isAdmin" rows="1" class="w-full bg-transparent border-transparent p-1 text-sm focus:bg-white focus:border-blue-500 leading-tight resize-y" placeholder="ชื่อกิจกรรม"></textarea>
                                     </div>
                                 </td>
-                                <td class="border p-1 align-top">
-                                    <textarea v-model="act.owner" :disabled="!isAdmin" rows="1" class="w-full bg-transparent border-transparent p-1 text-sm focus:bg-white focus:border-blue-500 leading-tight resize-y"></textarea>
-                                </td>
+                                <td class="border p-1 align-top"><textarea v-model="act.owner" :disabled="!isAdmin" rows="1" class="w-full bg-transparent border-transparent p-1 text-sm focus:bg-white focus:border-blue-500 leading-tight resize-y"></textarea></td>
                                 <td class="border p-1 align-top"><input type="number" v-model.number="act.ud1" :disabled="!isAdmin" :class="['w-full p-1.5 mt-0.5 text-right text-sm text-blue-900', isAdmin ? 'border rounded bg-blue-50' : 'bg-transparent border-transparent']"></td>
                                 <td class="border p-1 align-top"><input type="number" v-model.number="act.ud2" :disabled="!isAdmin" :class="['w-full p-1.5 mt-0.5 text-right text-sm text-blue-900', isAdmin ? 'border rounded bg-blue-50' : 'bg-transparent border-transparent']"></td>
                                 <td class="border p-1 align-top"><input type="number" v-model.number="act.dev1" :disabled="!isAdmin" :class="['w-full p-1.5 mt-0.5 text-right text-sm text-green-900', isAdmin ? 'border rounded bg-green-50' : 'bg-transparent border-transparent']"></td>
@@ -307,244 +300,19 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const isAdmin = ref(urlParams.get('mode') === 'admin');
 
-                const activeTab = ref('income');
+                // เริ่มที่ allocation ทันที
+                const activeTab = ref('allocation');
 
-                // กำหนดลำดับการแสดงผลของระดับชั้นให้คงที่เสมอ
                 const levelOrder = ['kg', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'm1', 'm2', 'm3'];
-
                 const students = ref({ kg: 0, p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0, m1: 0, m2: 0, m3: 0 });
                 const broughtForward = ref({ ud: 0, dev: 0 });
                 const projects = ref([]);
                 
                 const rates = ref({
-                    kg: { ud: 1972, dev: 490 },
-                    p1: { ud: 2204, dev: 546 }, p2: { ud: 2204, dev: 546 }, p3: { ud: 2204, dev: 546 },
+                    kg: { ud: 1972, dev: 490 }, p1: { ud: 2204, dev: 546 }, p2: { ud: 2204, dev: 546 }, p3: { ud: 2204, dev: 546 },
                     p4: { ud: 2204, dev: 546 }, p5: { ud: 2204, dev: 546 }, p6: { ud: 2204, dev: 546 },
                     m1: { ud: 4060, dev: 1002 }, m2: { ud: 4060, dev: 1002 }, m3: { ud: 4060, dev: 1002 }
                 });
-
-                const defaultProjects = [
-                    {
-                        id: 'p1', group: 'วิชาการ', name: 'โครงการพัฒนาความเป็นเลิศทางวิชาการสู่โรงเรียนคุณภาพของชุมชน', owner: 'นายภัคณัช ลังกาพินธ์',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p1a1', name: 'กิจกรรมส่งเสริมและพัฒนาการจัดการเรียนการสอน', owner: 'นายภัคณัช ลังกาพินธ์', ud1: 110000, ud2: 100000, dev1: 0, dev2: 0 },
-                            { id: 'p1a2', name: 'กิจกรรมพัฒนาทักษะวิชาการนักเรียนแบบองค์รวม', owner: 'นางอรอุมา อุดหนุน', ud1: 0, ud2: 30000, dev1: 0, dev2: 0 },
-                            { id: 'p1a3', name: 'กิจกรรมเพื่อพัฒนาทักษะด้านการโค้ดดิ้ง', owner: 'นางสาววิลาวัลย์ ยาทองคำ', ud1: 2000, ud2: 2000, dev1: 0, dev2: 0 },
-                            { id: 'p1a4', name: 'กิจกรรมส่งเสริมการดำเนินงานทะเบียนและวัดผลประเมินผล', owner: 'นายภัคณัช ลังกาพินธ์', ud1: 10000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p1a5', name: 'กิจกรรมพัฒนาหลักสูตรสถานศึกษา', owner: 'นางสาวสุพัตรา ขันทอง', ud1: 5000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p1a6', name: 'กิจกรรมเพื่อพัฒนาทักษะด้าน STEAM', owner: 'นางรัชราภรณ์  คำมูล', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p1a7', name: 'กิจกรรมเปิดบ้านวิชาการ', owner: 'นางสาวสุพัตรา ขันทอง', ud1: 40000, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p2', group: 'วิชาการ', name: 'โครงการส่งเสริมทักษะทางภาษา', owner: 'นางสาวจารุวรรณ สิงห์ลอ',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p2a1', name: 'กิจกรรมส่งเสริมการจัดการเรียนการสอนรูปแบบ BBL (Brain-Based Learning)', owner: 'นางสาวอัศรา แก้วคำ', ud1: 5000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p2a2', name: 'กิจกรรมส่งเสริมและพัฒนาทักษะภาษาอังกฤษ', owner: 'นางสาวสุพัตรา ขันทอง, นายพุทธ ดีดวงพันธ์', ud1: 15000, ud2: 0, dev1: 25000, dev2: 0 },
-                            { id: 'p2a3', name: 'กิจกรรมส่งเสริมนิสัยรักการอ่านและพัฒนาห้องสมุด', owner: 'นายทศพร ทองสอน, นางสาวจารุวรรณ สิงห์ลอ', ud1: 5000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p2a4', name: 'กิจกรรมพลิกโฉมการอ่านการเขียน นำผู้เรียนสู่ศตวรรษที่ 21', owner: 'นางสาวจารุวรรณ สิงห์ลอ', ud1: 9400, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p3', group: 'วิชาการ', name: 'โครงการสิ่งแวดล้อมศึกษาเพื่อการพัฒนาที่ยั่งยืน', owner: 'นายธนรัฐ เรือนฟ้างาม',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p3a1', name: 'กิจกรรมห้องเรียนสู้ฝุ่น', owner: 'นายทศพร ทองสอน', ud1: 4100, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p3a2', name: 'กิจกรรมส่งเสริมการเรียนรู้ตามหลักปรัชญาของเศรษฐกิจพอเพียง', owner: 'นายธนรัฐ เรือนฟ้างาม', ud1: 3000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p3a3', name: 'กิจกรรมส่งเสริมสิ่งแวดล้อมเพื่อการศึกษา (Zero waste)', owner: 'นายธนรัฐ เรือนฟ้างาม', ud1: 3000, ud2: 0, dev1: 12000, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p4', group: 'วิชาการ', name: 'โครงการส่งเสริมกิจกรรมสหกรณ์และออมทรัพย์', owner: 'นางสาวพิชชาภา โปร่งใจ',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p4a1', name: 'กิจกรรมสหกรณ์ร้านค้า', owner: 'นางสาวพิชชาภา โปร่งใจ', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p4a2', name: 'กิจกรรมออมทรัพย์นักเรียน', owner: 'นางสาวปุญญพัฒน์ จันสา', ud1: 0, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p5', group: 'วิชาการ', name: 'โครงการส่งเสริมคุณธรรมจริยธรรม', owner: 'นายพุทธ ดีดวงพันธ์',
-                        ud1: 0, ud2: 0, dev1: 20000, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p6', group: 'วิชาการ', name: 'โครงการบ้านนักวิทยาศาสตร์น้อย', owner: 'นางอรอุมา อุดหนุน, นางสาวปุญญพัฒน์ จันสา',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p6a1', name: 'กิจกรรมบ้านนักวิทยาศาสตร์น้อยปฐมวัย', owner: 'นางอรอุมา อุดหนุน', ud1: 2000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p6a2', name: 'กิจกรรมบ้านนักวิทยาศาสตร์น้อยประถมศึกษา', owner: 'นางสาวปุญญพัฒน์ จันสา, นางสาวอัศรา แก้วคำ', ud1: 3000, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p7', group: 'วิชาการ', name: 'โครงการระบบดูแลช่วยเหลือนักเรียน', owner: 'นายทศพร ทองสอน',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p7a1', name: 'กิจกรรมงานสนับสนุนเด็กยากจนพิเศษแบบมีเงื่อน(กสศ.)', owner: 'นายทศพร ทองสอน', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p7a2', name: 'กิจกรรมงานสนับสนุนเด็กยากจน(ปัจจัยพื้นฐานเด็กยากจน)', owner: 'นางสาวปุญญพัฒน์ จันสา', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p7a3', name: 'กิจกรรมส่งเสริมระบบดูแลช่วยเหลือนักเรียน', owner: 'นายทศพร ทองสอน, นางสาวสุภาพ สุทำแปง', ud1: 2500, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p8', group: 'วิชาการ', name: 'โครงการส่งเสริมกิจกรรมพัฒนาผู้เรียน', owner: 'นายพุทธ ดีดวงพันธ์',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p8a1', name: 'กิจกรรมทัศนศึกษาแหล่งเรียนรู้', owner: 'นายพุทธ ดีดวงพันธ์', ud1: 0, ud2: 0, dev1: 70000, dev2: 0 },
-                            { id: 'p8a2', name: 'กิจกรรมส่งเสริมการดำเนินงานสภานักเรียน', owner: 'นายประสงค์ อุดสาพะแล, นางรัชราภรณ์  คำมูล', ud1: 7000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p8a3', name: 'กิจกรรมส่งเสริมการดำเนินงานกิจกรรมวันสำคัญ', owner: 'นายพุทธ ดีดวงพันธ์', ud1: 3400, ud2: 3000, dev1: 0, dev2: 0 },
-                            { id: 'p8a4', name: 'กิจกรรมส่งเสริมและพัฒนาสุนทรียภาพด้านศิลปะ ดนตรีและกีฬา', owner: 'นายประสงค์ อุดสาพะแล, นางอรอุมา อุดหนุน, นายทศพร ทองสอน', ud1: 0, ud2: 10000, dev1: 13400, dev2: 0 },
-                            { id: 'p8a5', name: 'กิจกรรมส่งเสริมการเรียนรู้ลูกเสือ-เนตรนารี เพื่อพัฒนาทักษะชีวิต', owner: 'นายประสงค์ อุดสาพะแล', ud1: 0, ud2: 0, dev1: 30000, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p9', group: 'วิชาการ', name: 'โครงการโรงเรียนสถานศึกษาสีขาวปลอดยาเสพติดและอบายมุข', owner: 'นายทศพร ทองสอน และนายประสงค์ อุดสาพะแล',
-                        ud1: 5000, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p10', group: 'วิชาการ', name: 'โครงการโรงเรียนปลอดบุหรี่ บุหรี่ไฟฟ้า และเครื่องดื่มแอลกอฮอล์', owner: 'นายทศพร ทองสอน และนายประสงค์ อุดสาพะแล',
-                        ud1: 1000, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p11', group: 'วิชาการ', name: 'โครงการพัฒนาระบบเทคโนโลยีสารสนเทศของโรงเรียน', owner: 'นางสาววิลาวัลย์ ยาทองคำ',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p11a1', name: 'กิจกรรมพัฒนาระบบเครือข่ายอินเตอร์เน็ตและวัสดุอุปกรณ์', owner: 'นางสาววิลาวัลย์ ยาทองคำ', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p11a2', name: 'กิจกรรมพัฒนาระบบสารสนเทศและการประชาสัมพันธ์ผ่านเว็บไซต์', owner: 'นางสาววิลาวัลย์ ยาทองคำ', ud1: 2500, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p11a3', name: 'กิจกรรมพัฒนาสารสนเทศและการประชาสัมพันธ์ผ่าน facebook และ youtube', owner: 'นายทศพร ทองสอน', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p11a4', name: 'กิจกรรมพัฒนาสารสนเทศและการประชาสัมพันธ์ผ่านสื่อออนไลน์', owner: 'นางสาวจารุวรรณ สิงห์ลอ', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p11a5', name: 'กิจกรรมพัฒนาสารสนเทศและการประชาสัมพันธ์ผ่านสื่ออินโฟกราฟิก', owner: 'นางสาวพรพิไล สายปิ๋ว', ud1: 0, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p12', group: 'วิชาการ', name: 'โครงการจัดการเรียนการสอนทางไกลระบบ DLIT', owner: 'นางสาวอัศรา แก้วคำ',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p13', group: 'วิชาการ', name: 'โครงการส่งเสริมกิจกรรมการเรียนการสอนแบบเรียนรวม', owner: 'นางสาวพรพิไล สายปิ๋ว',
-                        ud1: 13000, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p14', group: 'วิชาการ', name: 'โครงการฝึกทักษะอาชีพนักเรียนเพื่อมีงานทำ', owner: 'นางสาวสุพัตรา  ขันทอง, นายภัคณัช ลังกาพินธ์',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p14a1', name: 'กิจกรรมพัฒนาทักษะอาชีพ', owner: 'นางสาวสุพัตรา  ขันทอง, นางสาวปุญญพัฒน์ จันสา', ud1: 30000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p14a2', name: 'กิจกรรมตลาดนัดอาชีพ', owner: 'นางสาวสุพัตรา  ขันทอง', ud1: 10000, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p15', group: 'วิชาการ', name: 'โครงการการพัฒาระบบประกันคุณภาพภายในสถานศึกษา', owner: 'นางสาววิลาวัลย์ ยาทองคำ',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p15a1', name: 'กิจกรรมส่งเสริมการพัฒนาระบบการควบคุมภายใน', owner: 'นายประสงค์ อุดสาพะแล', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p15a2', name: 'กิจกรรมการประเมินความโปร่งใสของสถานศึกษา (ITA)', owner: 'นางสาวปุญญพัฒน์ จันสา', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p15a3', name: 'กิจกรรมพัฒนาระบบการประกันคุณภาพภายในสถานศึกษา', owner: 'นางสาววิลาวัลย์ ยาทองคำ', ud1: 0, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p16', group: 'วิชาการ', name: 'โครงการพัฒนาศักยภาพการเรียนรู้เด็กตามมาตรฐานการศึกษาปฐมวัย', owner: 'นางจารุณี มุงเมือง',
-                        ud1: 5000, ud2: 0, dev1: 13000, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p17', group: 'วิชาการ', name: 'โครงการรณรงค์ส่งเสริมประชาธิปไตยในโรงเรียน', owner: 'นายประสงค์  อุดสาพะแล',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p18', group: 'งบประมาณ', name: 'โครงการส่งเสริมประสิทธิภาพการดำเนินงานงบประมาณ', owner: 'นางสาวปุญญพัฒน์ จันสา',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p18a1', name: 'กิจกรรมส่งเสริมการสนับสนุนค่าสาธารณูปโภค', owner: 'นางสาวปุญญพัฒน์ จันสา', ud1: 100000, ud2: 100000, dev1: 0, dev2: 0 },
-                            { id: 'p18a2', name: 'กิจกรรมพัฒนาสำนักงานและซ่อมแซมครุภัณฑ์', owner: 'นางรัชราภรณ์  คำมูล', ud1: 14000, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p19', group: 'งบประมาณ', name: 'โครงการเรียนฟรี 15 ปี', owner: 'นางสาวปุญญพัฒน์ จันสา, นางรัชราภรณ์ คำมูล',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p19a1', name: 'การดำเนินงานเกี่ยวกับหนังสือเรียน', owner: 'นางสาวสุพัตรา ขันทอง', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p19a2', name: 'การดำเนินงานเกี่ยวกับอุปกรณ์การเรียน', owner: 'นางรัชราภรณ์ คำมูล', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p19a3', name: 'การดำเนินงานเกี่ยวกับเครื่องแบบนักเรียน', owner: 'นางสาวพิชชาภา โปร่งใจ', ud1: 0, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p20', group: 'บุคคล', name: 'โครงการพัฒนาครูและบุคลากรทางการศึกษา', owner: 'นางสาวพิชชาภา โปร่งใจ',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p20a1', name: 'การอบรมเชิงปฏิบัติการการใช้ภาษาไทยเพื่อการสื่อสารสำหรับครู', owner: 'นายทศพร ทองสอน, นางสาวจารุวรรณ สิงห์ลอ', ud1: 1000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p20a2', name: 'การอบรมเชิงปฏิบัติการการใช้ภาษาอังกฤษเพื่อการสื่อสารสำหรับครู', owner: 'นางสาวสุพัตรา  ขันทอง', ud1: 1000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p20a3', name: 'การอบรมเชิงปฏิบัติการการใช้เทคโนโลยีดิจิทัลเพื่อการศึกษา', owner: 'นางสาววิลาวัลย์ ยาทองคำ', ud1: 1000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p20a4', name: 'กิจกรรมส่งเสริมการพัฒนาศักยภาพบุคลากร', owner: 'นางสาวพิชชาภา โปร่งใจ', ud1: 10000, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p21', group: 'บุคคล', name: 'โครงการจัดจ้างครูและบุคลากรทางการศึกษา', owner: 'นางสาวพิชชาภา โปร่งใจ',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p22', group: 'บริหารทั่วไป', name: 'โครงการบริหารการศึกษาโรงเรียนบ้านแม่เทยโดยใช้รูปแบบ Smart-MT', owner: 'นายณัฐนนท์ ศรีกิตตินนท์',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p23', group: 'บริหารทั่วไป', name: 'โครงการส่งเสริมการดำเนินงานโรงเรียนคุณภาพของชุมชน', owner: 'นายณัฐนนท์ ศรีกิตตินนท์',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p23a1', name: 'กิจกรรมส่งเสริมการดำเนินงานโรงเรียนคุณภาพของชุมชน', owner: 'นายณัฐนนท์ ศรีกิตตินนท์', ud1: 12000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p23a2', name: 'กิจกรรมส่งเสริมการพัฒนาห้องเรียนและห้องปฏิบัติการ (ห้องเรียนคุณภาพ)', owner: 'นางอรอุมา อุดหนุน', ud1: 15000, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p23a3', name: 'กิจกรรมส่งเสริมการดำเนินงานนโยบายและจุดเน้น', owner: 'นายณัฐนนท์ ศรีกิตตินนท์', ud1: 0, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p24', group: 'บริหารทั่วไป', name: 'โครงการปรับปรุงพัฒนาอาคารสถานที่ และแหล่งเรียนรู้ภายในโรงเรียน', owner: 'นายธนรัฐ เรือนฟ้างาม',
-                        ud1: 5000, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p25', group: 'บริหารทั่วไป', name: 'โครงการโรงเรียนส่งเสริมสุขภาพ', owner: 'นางสาวปุญญพัฒน์ จันสา',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p25a1', name: 'กิจกรรมพัฒาระบบสุขาภิบาลและน้ำดื่มสะอาด', owner: 'นายธนรัฐ เรือนฟ้างาม', ud1: 10000, ud2: 10000, dev1: 0, dev2: 0 },
-                            { id: 'p25a2', name: 'กิจกรรมส่งเสริมการดำเนินงานอนามัยโรงเรียน', owner: 'นางสาวปุญญพัฒน์ จันสา', ud1: 2500, ud2: 2500, dev1: 0, dev2: 0 },
-                            { id: 'p25a3', name: 'กิจกรรมส่งเสริมสุขอนามัยนักเรียน', owner: 'นางสาวปุญญพัฒน์ จันสา', ud1: 0, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p26', group: 'บริหารทั่วไป', name: 'โครงการส่งเสริมความปลอดภัยในโรงเรียน', owner: 'นางจารุณี มุงเมือง',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: [
-                            { id: 'p26a1', name: 'กิจกรรมส่งเสริมความปลอดภัยในโรงเรียน(การป้องกันภัยพิบัติในสถานศึกษา)', owner: 'นายธนรัฐ เรือนฟ้างาม', ud1: 0, ud2: 0, dev1: 0, dev2: 0 },
-                            { id: 'p26a2', name: 'กิจกรรมโรงเรียนปลอดภัย', owner: 'นางจารุณี มุงเมือง', ud1: 0, ud2: 0, dev1: 10000, dev2: 0 },
-                            { id: 'p26a3', name: 'กิจกรรมโรงเรียนคุ้มครองเด็ก', owner: 'นางสาวสุภาพ สุทำแปง', ud1: 0, ud2: 0, dev1: 0, dev2: 0 }
-                        ]
-                    },
-                    {
-                        id: 'p27', group: 'บริหารทั่วไป', name: 'โครงการอาหารกลางวันสำหรับนักเรียนชั้นอนุบาลถึงชั้นประถมศึกษา', owner: 'นางอรอุมา อุดหนุน',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p28', group: 'บริหารทั่วไป', name: 'โครงการอาหารเสริม(นม) สำหรับนักเรียนชั้นอนุบาลถึงชั้นประถมศึกษา', owner: 'นางอรอุมา อุดหนุน',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p29', group: 'บริหารทั่วไป', name: 'โครงการชุมชนสัมพันธ์', owner: 'นายทศพร ทองสอน, นางสาวจารุวรรณ สิงห์ลอ',
-                        ud1: 3400, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    },
-                    {
-                        id: 'p30', group: 'บริหารทั่วไป', name: 'โครงการปรับปรุงระบบสุขาภิบาลและอุปกรณ์ภายในเพื่อสวัสดิการบ้านพักครู 8 ครอบครัว', owner: 'นายพุทธ ดีดวงพันธ์',
-                        ud1: 0, ud2: 0, dev1: 0, dev2: 0,
-                        activities: []
-                    }
-                ];
 
                 onMounted(() => {
                     onValue(dbBudgetRef, (snapshot) => {
@@ -554,26 +322,9 @@
                             if (data.students) students.value = data.students;
                             if (data.broughtForward) broughtForward.value = data.broughtForward;
                             if (data.projects) projects.value = data.projects;
-                        } else {
-                            projects.value = JSON.parse(JSON.stringify(defaultProjects));
                         }
                     });
                 });
-
-                const saveData = () => {
-                    if (!isAdmin.value) return; 
-
-                    set(dbBudgetRef, {
-                        rates: rates.value,
-                        students: students.value,
-                        broughtForward: broughtForward.value,
-                        projects: projects.value
-                    }).then(() => {
-                        alert('บันทึกข้อมูลขึ้นระบบสำเร็จ! ข้อมูลจะอัปเดตไปที่เครื่องของผู้เข้าชมทุกคนทันที');
-                    }).catch((error) => {
-                        alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
-                    });
-                };
 
                 const totalIncomeUd = computed(() => Object.keys(students.value).reduce((sum, key) => sum + (students.value[key] * rates.value[key].ud), 0));
                 const totalIncomeDev = computed(() => Object.keys(students.value).reduce((sum, key) => sum + (students.value[key] * rates.value[key].dev), 0));
@@ -585,21 +336,15 @@
 
                 const getProjectTotal = (pIdx, field) => {
                     const p = projects.value[pIdx];
-                    if (p.activities && p.activities.length > 0) {
-                        return p.activities.reduce((sum, act) => sum + (Number(act[field]) || 0), 0);
-                    }
+                    if (p.activities && p.activities.length > 0) return p.activities.reduce((sum, act) => sum + (Number(act[field]) || 0), 0);
                     return p[field] || 0;
                 };
 
-                const getProjectGrandTotal = (pIdx) => {
-                    return getProjectTotal(pIdx, 'ud1') + getProjectTotal(pIdx, 'ud2') + getProjectTotal(pIdx, 'dev1') + getProjectTotal(pIdx, 'dev2');
-                };
+                const getProjectGrandTotal = (pIdx) => getProjectTotal(pIdx, 'ud1') + getProjectTotal(pIdx, 'ud2') + getProjectTotal(pIdx, 'dev1') + getProjectTotal(pIdx, 'dev2');
 
                 const updateProjectVal = (pIdx, field, event) => {
                     const p = projects.value[pIdx];
-                    if (!p.activities || p.activities.length === 0) {
-                        p[field] = Number(event.target.value) || 0;
-                    }
+                    if (!p.activities || p.activities.length === 0) p[field] = Number(event.target.value) || 0;
                 };
 
                 const allocatedTerm1Ud = computed(() => projects.value.reduce((sum, p, i) => sum + getProjectTotal(i, 'ud1'), 0));
@@ -610,72 +355,73 @@
                 const remainingUd = computed(() => (totalIncomeUd.value + broughtForward.value.ud) - (allocatedTerm1Ud.value + allocatedTerm2Ud.value));
                 const remainingDev = computed(() => (totalIncomeDev.value + broughtForward.value.dev) - (allocatedTerm1Dev.value + allocatedTerm2Dev.value));
 
-                const addProject = () => {
-                    projects.value.push({ id: Date.now().toString(), group: 'วิชาการ', name: 'โครงการใหม่', owner: '', ud1: 0, ud2: 0, dev1: 0, dev2: 0, activities: [] });
-                };
-                const removeProject = (idx) => {
-                    if(confirm('ต้องการลบโครงการนี้ใช่หรือไม่?')) projects.value.splice(idx, 1);
-                };
-                const addActivity = (pIdx) => {
-                    if (!projects.value[pIdx].activities) projects.value[pIdx].activities = [];
-                    if (projects.value[pIdx].activities.length === 0) {
-                        projects.value[pIdx].ud1 = projects.value[pIdx].ud2 = projects.value[pIdx].dev1 = projects.value[pIdx].dev2 = 0;
-                    }
-                    projects.value[pIdx].activities.push({ id: Date.now().toString(), name: 'กิจกรรมใหม่', owner: '', ud1: 0, ud2: 0, dev1: 0, dev2: 0 });
-                };
-                const removeActivity = (pIdx, aIdx) => {
-                    projects.value[pIdx].activities.splice(aIdx, 1);
-                };
-
-                const formatNumber = (num) => new Intl.NumberFormat('th-TH').format(num || 0);
-                const levelDisplay = (level) => {
-                    const map = { kg: 'อ.1-3', p1: 'ป.1', p2: 'ป.2', p3: 'ป.3', p4: 'ป.4', p5: 'ป.5', p6: 'ป.6', m1: 'ม.1', m2: 'ม.2', m3: 'ม.3' };
-                    return map[level];
-                };
-
-                const exportToExcel = () => {
-                    const dataRows = [];
-                    dataRows.push(['ที่', 'กลุ่มงาน', 'โครงการ/กิจกรรม', 'ผู้รับผิดชอบโครงการ', 'อุดหนุน(เทอม 1)', 'อุดหนุน(เทอม 2)', 'ก.พัฒฯ(เทอม 1)', 'ก.พัฒฯ(เทอม 2)', 'รวม']);
-
-                    projects.value.forEach((p, index) => {
-                        const ud1 = getProjectTotal(index, 'ud1');
-                        const ud2 = getProjectTotal(index, 'ud2');
-                        const dev1 = getProjectTotal(index, 'dev1');
-                        const dev2 = getProjectTotal(index, 'dev2');
-                        const total = getProjectGrandTotal(index);
-
-                        dataRows.push([ index + 1, p.group || '', p.name || '', p.owner || '', ud1, ud2, dev1, dev2, total ]);
-
-                        if (p.activities && p.activities.length > 0) {
-                            p.activities.forEach(act => {
-                                const actTotal = (act.ud1 || 0) + (act.ud2 || 0) + (act.dev1 || 0) + (act.dev2 || 0);
-                                dataRows.push([ '', '', '   - ' + (act.name || ''), act.owner || '', act.ud1 || 0, act.ud2 || 0, act.dev1 || 0, act.dev2 || 0, actTotal ]);
-                            });
+                const groupTotals = computed(() => {
+                    const totals = {
+                        'วิชาการ': { ud1: 0, ud2: 0, dev1: 0, dev2: 0, total: 0 }, 'งบประมาณ': { ud1: 0, ud2: 0, dev1: 0, dev2: 0, total: 0 },
+                        'บุคคล': { ud1: 0, ud2: 0, dev1: 0, dev2: 0, total: 0 }, 'บริหารทั่วไป': { ud1: 0, ud2: 0, dev1: 0, dev2: 0, total: 0 }
+                    };
+                    projects.value.forEach((p, i) => {
+                        const g = p.group;
+                        if (totals[g]) {
+                            totals[g].ud1 += getProjectTotal(i, 'ud1'); totals[g].ud2 += getProjectTotal(i, 'ud2');
+                            totals[g].dev1 += getProjectTotal(i, 'dev1'); totals[g].dev2 += getProjectTotal(i, 'dev2');
+                            totals[g].total += getProjectGrandTotal(i);
                         }
                     });
+                    return totals;
+                });
 
-                    dataRows.push([
-                        'รวมทั้งหมด', '', '', '',
-                        allocatedTerm1Ud.value, allocatedTerm2Ud.value, allocatedTerm1Dev.value, allocatedTerm2Dev.value,
-                        allocatedTerm1Ud.value + allocatedTerm2Ud.value + allocatedTerm1Dev.value + allocatedTerm2Dev.value
-                    ]);
+                const groupOrder = { 'วิชาการ': 1, 'งบประมาณ': 2, 'บุคคล': 3, 'บริหารทั่วไป': 4 };
+                
+                const saveData = () => {
+                    if (!isAdmin.value) return; 
+                    projects.value.sort((a, b) => (groupOrder[a.group] || 99) - (groupOrder[b.group] || 99));
+                    set(dbBudgetRef, { rates: rates.value, students: students.value, broughtForward: broughtForward.value, projects: projects.value })
+                    .then(() => { alert('บันทึกข้อมูลเรียบร้อยแล้ว!'); window.location.reload(); })
+                    .catch((error) => alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message));
+                };
 
+                // ฟังก์ชันเคลียร์ยอดเงินจัดสรร
+                const clearAllocation = () => {
+                    if (!isAdmin.value) return;
+                    if (confirm('⚠️ คุณแน่ใจหรือไม่ว่าต้องการ "ล้างยอดเงินจัดสรรทั้งหมด"? \n\nการกระทำนี้จะเปลี่ยนตัวเลขจัดสรรในทุกโครงการให้เป็น 0 (ชื่อโครงการจะยังอยู่เหมือนเดิม) และต้องกดปุ่มบันทึกข้อมูลเพื่อยืนยันอีกครั้ง')) {
+                        projects.value.forEach(p => {
+                            p.ud1 = 0; p.ud2 = 0; p.dev1 = 0; p.dev2 = 0;
+                            if (p.activities && p.activities.length > 0) {
+                                p.activities.forEach(a => {
+                                    a.ud1 = 0; a.ud2 = 0; a.dev1 = 0; a.dev2 = 0;
+                                });
+                            }
+                        });
+                    }
+                };
+
+                const addProject = () => projects.value.push({ id: Date.now().toString(), group: 'วิชาการ', name: 'โครงการใหม่', owner: '', ud1: 0, ud2: 0, dev1: 0, dev2: 0, activities: [] });
+                const removeProject = (idx) => { if(confirm('ต้องการลบโครงการนี้ใช่หรือไม่?')) projects.value.splice(idx, 1); };
+                const addActivity = (pIdx) => {
+                    if (!projects.value[pIdx].activities) projects.value[pIdx].activities = [];
+                    if (projects.value[pIdx].activities.length === 0) projects.value[pIdx].ud1 = projects.value[pIdx].ud2 = projects.value[pIdx].dev1 = projects.value[pIdx].dev2 = 0;
+                    projects.value[pIdx].activities.push({ id: Date.now().toString(), name: 'กิจกรรมใหม่', owner: '', ud1: 0, ud2: 0, dev1: 0, dev2: 0 });
+                };
+                const removeActivity = (pIdx, aIdx) => projects.value[pIdx].activities.splice(aIdx, 1);
+
+                const formatNumber = (num) => new Intl.NumberFormat('th-TH').format(num || 0);
+                const levelDisplay = (level) => ({ kg: 'อ.1-3', p1: 'ป.1', p2: 'ป.2', p3: 'ป.3', p4: 'ป.4', p5: 'ป.5', p6: 'ป.6', m1: 'ม.1', m2: 'ม.2', m3: 'ม.3' }[level]);
+
+                const exportToExcel = () => {
+                    const dataRows = [['ที่', 'กลุ่มงาน', 'โครงการ/กิจกรรม', 'ผู้รับผิดชอบโครงการ', 'อุดหนุน(เทอม 1)', 'อุดหนุน(เทอม 2)', 'ก.พัฒฯ(เทอม 1)', 'ก.พัฒฯ(เทอม 2)', 'รวม']];
+                    projects.value.forEach((p, index) => {
+                        dataRows.push([ index + 1, p.group || '', p.name || '', p.owner || '', getProjectTotal(index, 'ud1'), getProjectTotal(index, 'ud2'), getProjectTotal(index, 'dev1'), getProjectTotal(index, 'dev2'), getProjectGrandTotal(index) ]);
+                        if (p.activities && p.activities.length > 0) p.activities.forEach(act => dataRows.push([ '', '', '   - ' + (act.name || ''), act.owner || '', act.ud1 || 0, act.ud2 || 0, act.dev1 || 0, act.dev2 || 0, (act.ud1 || 0) + (act.ud2 || 0) + (act.dev1 || 0) + (act.dev2 || 0) ]));
+                    });
+                    dataRows.push(['รวมทั้งหมด', '', '', '', allocatedTerm1Ud.value, allocatedTerm2Ud.value, allocatedTerm1Dev.value, allocatedTerm2Dev.value, allocatedTerm1Ud.value + allocatedTerm2Ud.value + allocatedTerm1Dev.value + allocatedTerm2Dev.value]);
                     const worksheet = XLSX.utils.aoa_to_sheet(dataRows);
                     const workbook = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(workbook, worksheet, "จัดสรรงบประมาณ");
                     XLSX.writeFile(workbook, "แผนจัดสรรงบประมาณ_2569.xlsx");
                 };
 
-                return {
-                    isAdmin, activeTab, levelOrder, students, rates, broughtForward, projects,
-                    totalIncomeUd, totalIncomeDev,
-                    budgetTerm1Ud, budgetTerm2Ud, budgetTerm1Dev, budgetTerm2Dev,
-                    allocatedTerm1Ud, allocatedTerm2Ud, allocatedTerm1Dev, allocatedTerm2Dev,
-                    remainingUd, remainingDev,
-                    getProjectTotal, getProjectGrandTotal, updateProjectVal,
-                    addProject, removeProject, addActivity, removeActivity,
-                    formatNumber, levelDisplay, saveData, exportToExcel
-                };
+                return { isAdmin, activeTab, levelOrder, students, rates, broughtForward, projects, totalIncomeUd, totalIncomeDev, budgetTerm1Ud, budgetTerm2Ud, budgetTerm1Dev, budgetTerm2Dev, allocatedTerm1Ud, allocatedTerm2Ud, allocatedTerm1Dev, allocatedTerm2Dev, remainingUd, remainingDev, groupTotals, getProjectTotal, getProjectGrandTotal, updateProjectVal, addProject, removeProject, addActivity, removeActivity, clearAllocation, formatNumber, levelDisplay, saveData, exportToExcel };
             }
         }).mount('#app');
     </script>
